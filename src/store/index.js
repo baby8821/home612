@@ -1,41 +1,48 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
-import request from '@/api'
 Vue.use(Vuex)
+
+
+import request from '@/api'
 
 export default new Vuex.Store({
   state: {
-    name: null,
-    token: null
+    userName: null,
+    avatarPath: null,
+    name: null
   },
   actions: {
     getUserInfo(context) {
-      // console.log("getUserInfo token", context.state.token)
-      request({
-        url: "/getUserInfo",
-        method: "post",
-        data: {
-          token: context.state.token
-        }
-      }).then(data => {
-        context.commit("CHANGEUSERINFO", data)
-      })
+      console.log("getUserInfo");
+      if (context.state.userName) {
+        request({
+          url: `/avatar/getByUserName?username=${context.state.userName}`,
+        }).then(data => {
+          console.log("data", data);
+          if (data.isOK) {
+            context.commit("GETAVATAR", data)
+          }
+        })
+      }
     }
   },
   mutations: {
-    ADDTOKEN(state, TOKEN) {
-      state.token = TOKEN
-      // console.log("token 添加成功，值为：" + state.token)
+    SIGNIN(state, data) {
+      console.log("vuex get userName", data.userName);
+      state.userName = data.userName
+      console.log("vuex get name", data.name);
+      state.name = data.name
+
     },
-    DELETETOKEN(state) {
-      state.token = null
-      state.name = null
-      // console.log("token 已删除")
+    SIGNOUT(state) {
+      state.userName = null
+      console.log("vuex remove userName", state.userName);
+
     },
-    CHANGEUSERINFO(state, obj) {
-      state.name = obj.name
-      state.token = obj.token
-      // console.log("用户信息已获取" + state.name + state.token)
+    GETAVATAR(state, data) {
+      console.log("vuex get avatarPath", data.avatarPath);
+      state.avatarPath = data.avatarPath
+      console.log("state.avatarPath", state.avatarPath);
     }
   }
 

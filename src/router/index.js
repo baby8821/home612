@@ -18,60 +18,30 @@ const router = new VueRouter({
       path: "/home",
       name: "home",
       component: () => import('@/views/home'),
-      beforeEnter: (to, from, next) => {
-        if (store.state.token) {
-          next()
-        } else {
-          next("/login")
-        }
-      }
+    },
+    {
+      path: "/mypage",
+      name: "mypage",
+      component: () => import('@/views/mypage')
     },
     {
       path: "/memory",
       name: "memory",
       component: () => import('@/views/memory'),
-      beforeEnter: (to, from, next) => {
-        if (store.state.token) {
-          next()
-        } else {
-          next("/login")
-        }
-      }
     },
     {
       path: "/introduce",
       name: "introduce",
       component: () => import('@/views/introduce'),
-      beforeEnter: (to, from, next) => {
-        if (store.state.token) {
-          next()
-        } else {
-          next("/login")
-        }
-      }
     },
     {
       path: "/story",
       name: "story",
       component: () => import('@/views/story'),
-      beforeEnter: (to, from, next) => {
-        if (store.state.token) {
-          next()
-        } else {
-          next("/login")
-        }
-      }
     }, {
       path: "/area",
       name: "area",
       component: () => import('@/views/area'),
-      beforeEnter: (to, from, next) => {
-        if (store.state.token) {
-          next()
-        } else {
-          next("/login")
-        }
-      }
     }
   ]
 })

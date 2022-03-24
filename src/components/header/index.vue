@@ -10,37 +10,37 @@
         @mouseleave="display = 'display: none'"
       >
         <div class="avatar">
-          <img src="@/assets/612door.jpg" alt="" width="100%" height="100%" />
+          <img :src="avatarPath" alt="" width="100%" height="100%" />
         </div>
-        <router-link to="/login" v-show="!token" @click="goLogin"
-          >login</router-link
-        >
-        <a class="userinfo" v-show="token">{{ name }}</a>
-        <ul class="userlist" v-if="token" :style="display">
-          <li @click="signOut">退出登录</li>
+        <a class="userinfo">{{ name }}</a>
+        <ul class="userlist" v-if="userName" :style="display">
+          <li @click="goMyPage">我的主页</li>
           <li @click="AvatarDisplay = 'display: block'">更换头像</li>
+          <li @click="signOut">退出登录</li>
         </ul>
       </div>
     </div>
+
+    <!-- 更换头像框 -->
     <div class="selectFile" :style="AvatarDisplay">
-      <input type="text" name="name" :value="name" style="display: none" />
       <div class="title">更换头像</div>
-      <div class="select">
-        <input type="file" @change="getfile($event)" />
-      </div>
-      <div class="showAvatar"></div>
-      <div class="isSure">
-        <button class="sure" @click="upload">确定</button>
-        <button class="cancel" @click="AvatarDisplay = 'display: none'">
-          取消
-        </button>
-      </div>
+      <form id="forms">
+        <div class="select">
+          <input type="file" @change="getfile($event)" />
+        </div>
+        <div class="showAvatar"></div>
+        <div class="isSure">
+          <button class="sure" @click="upload">确定</button>
+          <button class="cancel" @click="reset">取消</button>
+        </div>
+      </form>
     </div>
   </div>
 </template>
 
 <script>
-import request from "@/api/uploadAvatar";
+import request from "@/api";
+
 export default {
   name: "Header",
   data() {
@@ -56,8 +56,17 @@ export default {
     this.showAvatar = document.getElementsByClassName("showAvatar")[0];
   },
   computed: {
-    token() {
-      return this.$store.state.token;
+    avatarPath: {
+      get() {
+        return this.$store.state.avatarPath;
+      },
+      set(newValue) {
+        console.log("avatarPath 被修改了", newValue);
+        this.$store.commit("GETAVATAR", { avatarPath: newValue });
+      },
+    },
+    userName() {
+      return this.$store.state.userName;
     },
     name() {
       return this.$store.state.name;
@@ -65,42 +74,50 @@ export default {
   },
   methods: {
     signOut() {
-      this.$store.commit("DELETETOKEN");
-      this.$router.push({ path: "/" });
-    },
-    goLogin() {
-      this.$router.push({ path: "/" });
+      this.$cookies.remove("token");
+      this.$router.replace({ path: "/" });
     },
     getfile(e) {
+      // 获取选取的图片
       this.file = e.target.files[0];
+      // 创建一个img展示选中的图片
       let image = document.createElement("img");
       image.src = URL.createObjectURL(this.file);
       image.style.height = "100%";
-
-      this.removeUploadImage();
-      console.log(this.showAvatar);
       this.showAvatar.insertAdjacentElement("beforeend", image);
     },
     upload() {
+      // 创建一个 FromData 对象
       let forms = new FormData();
+      // 添加 file 和 userName 属性
       forms.append("file", this.file);
-      forms.append("name", "youbo");
-
+      forms.append("userName", this.userName);
+      // 提交更换图片请求
       request
-        .post("/uploadAvatar", forms, {
+        .post("/avatar/upload", forms, {
           headers: {
             "Content-Type": "multipart/form-data",
           },
         })
-        .then((res) => {
-          console.log(res);
-          this.removeUploadImage();
+        .then((data) => {
+          console.log(data);
+          this.avatarPath = data.avatarPath;
+          this.reset();
+        })
+        .catch(() => {
+          this.reset();
         });
     },
-    removeUploadImage() {
+    reset() {
       if (this.showAvatar.children.length !== 0) {
         this.showAvatar.removeChild(this.showAvatar.children[0]);
       }
+      let form = document.querySelector("#forms");
+      form.reset();
+      this.AvatarDisplay = "display: none";
+    },
+    goMyPage() {
+      this.$router.push("/mypage");
     },
   },
 };
@@ -185,6 +202,7 @@ export default {
     left: 50%;
     transform: translate(-50%, 80%);
     box-shadow: #ccc 0px 0px 10px;
+    border-radius: 10px;
 
     .title {
       height: 40px;

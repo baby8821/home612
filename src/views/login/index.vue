@@ -37,12 +37,22 @@
         <span class="iconfont icon-shibai icon" v-show="!success"></span>
         <span class="msg">{{ info }}</span>
       </div>
+      <span
+        class="iconfont icon-51yinliang"
+        v-show="music"
+        @click="changeVolume"
+      ></span>
+      <span
+        class="iconfont icon-52jingyin"
+        v-show="!music"
+        @click="changeVolume"
+      ></span>
     </div>
   </div>
 </template>
 
 <script>
-import request from "@/api/index";
+import request from "@/api";
 import "animate.css";
 
 export default {
@@ -58,6 +68,7 @@ export default {
       success: false,
       info: "密码错误",
       color: "color: green",
+      music: true,
     };
   },
   mounted() {
@@ -70,24 +81,26 @@ export default {
       if (this.user) {
         if (this.pwd) {
           request({
-            url: "/userinfo",
+            url: "/login",
             method: "post",
-            data: JSON.stringify({ user: this.user, pwd: this.pwd }),
-          }).then((data) => {
-            if (data.login === true) {
+            data: JSON.stringify({ userName: this.user, password: this.pwd }),
+          }).then((res) => {
+            console.log("sign in", res);
+            if (res.isOK === true) {
               // 登录成功
               this.isShow = true;
               this.success = true;
               this.color = "color: green";
-              this.info = "欢迎回来~ " + this.user;
+              this.info = "欢迎回来~ " + res.data.name;
               this.loginBox.push("hidden");
               setTimeout(() => {
                 this.isShow = false;
               }, 2000);
+
+              // 将token保存在LocalStorage
+              localStorage.setItem("token", res.data.token);
               // 登录框消失
               this.display = "display: none";
-              // 储存用户 token
-              this.$store.commit("ADDTOKEN", data.token);
               // 播放视频
               let video = document.querySelector("video");
               video.className = "playing";
@@ -95,7 +108,7 @@ export default {
               // 路由跳转
               setTimeout(() => {
                 this.$router.push("/home");
-              }, 6000);
+              }, 1000);
             } else {
               // 密码错误
               this.pwd = null;
@@ -131,6 +144,15 @@ export default {
         this.isShow = false;
       }, 2000);
     },
+    changeVolume() {
+      let audio = document.querySelector("audio");
+      if (this.music) {
+        audio.pause();
+      } else {
+        audio.play();
+      }
+      this.music = !this.music;
+    },
   },
 };
 </script>
@@ -146,6 +168,20 @@ export default {
     position: relative;
     width: auto;
     height: 100%;
+
+    & > span {
+      font-size: 30px;
+      color: rgba(255, 255, 255, 0.589);
+      position: absolute;
+      right: 80px;
+      top: 40px;
+      cursor: pointer;
+
+      &:hover {
+        color: rgba(255, 255, 255, 0.788);
+        text-shadow: 0 0 3px #ccc;
+      }
+    }
 
     video {
       position: absolute;

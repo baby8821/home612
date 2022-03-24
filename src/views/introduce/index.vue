@@ -6,43 +6,55 @@
         v-show="left"
         @click="goLeft"
       ></span>
-      <div class="cards">
-        <!-- <transition-group> -->
-        <div class="card" v-for="p in peopleList" :key="p.name">
-          <div class="pic">
-            <img :src="p.picturePath" alt="" width="100%" />
+
+      <transition name="cards" appear>
+        <div
+          class="cards"
+          @mousedown="dragBegin($event)"
+          @mousemove="drag($event)"
+          @mouseup="dragEnd($event)"
+          @mouseleave="dragLeave($event)"
+        >
+          <div
+            class="card"
+            v-for="p in peopleList"
+            :key="p.name"
+            @mousedown="($event) => $event.preventDefault()"
+          >
+            <div class="pic">
+              <img :src="p.picturePath" alt="" width="100%" />
+            </div>
+            <table class="msg">
+              <tr>
+                <th colspan="2">
+                  {{ p.nickname }}
+                </th>
+              </tr>
+              <tr>
+                <td>名讳:</td>
+                <td>{{ p.name }}</td>
+              </tr>
+              <tr>
+                <td>年芳:</td>
+                <td>{{ p.age }}</td>
+              </tr>
+              <tr>
+                <td>华诞:</td>
+                <td>{{ p.birth.slice(0, 10) }}</td>
+              </tr>
+              <tr>
+                <td>府邸:</td>
+                <td>{{ p.livePlace }}</td>
+              </tr>
+              <tr>
+                <td>癖好:</td>
+                <td>{{ p["habits"].join(" ") }}</td>
+              </tr>
+            </table>
           </div>
-          <table class="msg">
-            <!-- <caption>{{ p.nickname }}</caption> -->
-            <tr>
-              <th colspan="2">
-                {{ p.nickname }}
-              </th>
-            </tr>
-            <tr>
-              <td>名讳:</td>
-              <td>{{ p.name }}</td>
-            </tr>
-            <tr>
-              <td>年芳:</td>
-              <td>{{ p.age }}</td>
-            </tr>
-            <tr>
-              <td>华诞:</td>
-              <td>{{ p.birth }}</td>
-            </tr>
-            <tr>
-              <td>府邸:</td>
-              <td>{{ p.livePlace }}</td>
-            </tr>
-            <tr>
-              <td>癖好:</td>
-              <td>{{ p["habits"] }}</td>
-            </tr>
-          </table>
         </div>
-        <!-- </transition-group> -->
-      </div>
+      </transition>
+
       <span
         class="goRight iconfont icon-you"
         v-show="right"
@@ -53,29 +65,31 @@
 </template>
 
 <script>
+import request from "@/api";
 export default {
   name: "introduce",
   data() {
     return {
       left: true,
       right: true,
-      peopleList: [
-        {
-          nickname: "最爱裸睡阿福",
-          name: "甄印福",
-          age: 22,
-          birth: "2000-02-15",
-          livePlace: "黄土高坡",
-          habits: "打篮球",
-          picturePath: "http://121.4.32.3/avatar/youbo.jpg",
-        },
-        { name: "甄1印福" },
-        { name: "甄2印福" },
-        { name: "甄3印福" },
-        { name: "甄4印福" },
-        { name: "甄5印福" },
-      ],
+      peopleList: [],
+      isDrag: false,
+      m_x: 0,
     };
+  },
+  mounted() {
+    document.addEventListener("selectstart", function (e) {
+      e.preventDefault();
+    });
+    request({
+      url: "/user/getAllBriefInfo",
+      method: "post",
+    }).then((data) => {
+      if (data.isOK == true) {
+        this.peopleList = data.data;
+        console.log(this.peopleList);
+      }
+    });
   },
   methods: {
     goLeft() {
@@ -89,6 +103,29 @@ export default {
       let min = container_width.slice(0, container_width.length - 2);
       let differ = 2040 - Number(min);
       box.scrollTo({ left: differ, behavior: "smooth" });
+    },
+    dragBegin(e) {
+      console.log("begin");
+
+      this.isDrag = true;
+      this.m_x = e.pageX;
+    },
+    drag(e) {
+      if (this.isDrag) {
+        console.log("drag");
+
+        let move = e.pageX - this.m_x;
+        let box = document.querySelector(".cards");
+        box.scrollLeft -= move * 1.3;
+        this.m_x = e.pageX;
+      }
+    },
+    dragEnd(e) {
+      this.isDrag = false;
+      console.log("end");
+    },
+    dragLeave(e) {
+      this.isDrag = false;
     },
   },
 };
@@ -127,7 +164,13 @@ export default {
         margin: 0 20px;
         border-radius: 20px;
         overflow: hidden;
-        box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.5);
+        box-shadow: 0px 0px 5px rgba(138, 132, 132, 0.5);
+        cursor: pointer;
+        transition: all 0.3s;
+
+        &:hover {
+          box-shadow: 0px 0px 20px rgba(61, 57, 57, 0.5);
+        }
 
         .pic {
           position: absolute;
@@ -136,7 +179,7 @@ export default {
           overflow: hidden;
 
           img {
-            transform: translateY(-10%);
+            // transform: translateY(-10%);
           }
         }
         .msg {
@@ -172,6 +215,17 @@ export default {
     .goRight {
       right: 0px;
     }
+  }
+
+  .cards-enter-active,
+  .cards-leave-active {
+    transition: all 1s;
+  }
+
+  .cards-enter,
+  .cards-leave-to {
+    transform: translateX(10%);
+    opacity: 0.4;
   }
 }
 </style>

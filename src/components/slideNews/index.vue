@@ -9,13 +9,16 @@
 
       <!-- 右边的滚动条 -->
       <div class="slidebor">
-        <div class="things" @webkitAnimationEnd="console.log('animationend')">
+        <div class="things">
           <!-- currentNews是每次滚动内容的源对象 -->
-          <a class="content" :href="currentNews.details" target="black">{{
-            currentNews.things
-          }}</a>
-          <!-- 最新的新闻显示 new -->
-          <span class="iconfont icon-new new" v-show="currentNews.isnew"></span>
+          <a
+            class="content"
+            href="javascript:;"
+            target="black"
+            @click="goArticle(currentNews.id)"
+            >{{ currentNews.title }}</a
+          >
+          <span class="iconfont icon-new new"></span>
         </div>
       </div>
       <span class="iconfont icon-guanbi close" @click="close($event)"></span>
@@ -24,7 +27,7 @@
 </template>
 
 <script>
-import request from "@/api/index";
+import request from "@/api";
 export default {
   name: "SlideNews",
   data() {
@@ -40,10 +43,11 @@ export default {
   mounted() {
     // 发送请求，将获取的数据传给 newsList
     request({
-      url: "/getNews",
+      url: "/article/getAll",
     })
       .then((data) => {
-        this.newsList = data;
+        console.log("getSlideArticles", data.articles);
+        this.newsList = data.articles;
       })
       .catch((err) => console.log(err));
   },
@@ -131,6 +135,10 @@ export default {
         float: left;
         font-size: 16px;
         color: red;
+
+        &:hover {
+          text-decoration: underline;
+        }
       }
       .new {
         float: left;

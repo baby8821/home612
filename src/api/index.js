@@ -5,7 +5,12 @@ import nprogress from 'nprogress'
 import "nprogress/nprogress.css"
 
 const request = axios.create({
-  baseURL: "https://qcoc2v.api.cloudendpoint.cn"
+  baseURL: "http://121.4.32.3",
+  // config: {
+  headers: {
+    "Authorization": "Bearer " + localStorage.getItem("token")
+  }
+  // }
 })
 
 request.interceptors.request.use((config) => {

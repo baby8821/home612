@@ -2,7 +2,7 @@
   <div id="app">
     <Header v-if="this.$route.path !== '/login'"></Header>
     <router-view></router-view>
-    <SlideNews></SlideNews>
+    <!-- <SlideNews></SlideNews> -->
   </div>
 </template>
 
