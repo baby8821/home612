@@ -10,30 +10,14 @@
         @mouseleave="display = 'display: none'"
       >
         <div class="avatar">
-          <img :src="avatarPath" alt="" width="100%" height="100%" />
+          <img :src="avatarPath" width="100%" height="100%" />
         </div>
         <a class="userinfo">{{ name }}</a>
-        <ul class="userlist" v-if="userName" :style="display">
+        <ul class="userlist" v-if="name" :style="display">
           <li @click="goMyPage">我的主页</li>
-          <li @click="AvatarDisplay = 'display: block'">更换头像</li>
           <li @click="signOut">退出登录</li>
         </ul>
       </div>
-    </div>
-
-    <!-- 更换头像框 -->
-    <div class="selectFile" :style="AvatarDisplay">
-      <div class="title">更换头像</div>
-      <form id="forms">
-        <div class="select">
-          <input type="file" @change="getfile($event)" />
-        </div>
-        <div class="showAvatar"></div>
-        <div class="isSure">
-          <button class="sure" @click="upload">确定</button>
-          <button class="cancel" @click="reset">取消</button>
-        </div>
-      </form>
     </div>
   </div>
 </template>
@@ -46,78 +30,36 @@ export default {
   data() {
     return {
       display: "display: none",
-      AvatarDisplay: "display: none",
-      file: null,
-      showAvatar: null,
+      avatarPath: "",
+      name: "",
     };
   },
   mounted() {
-    this.$store.dispatch("getUserInfo");
-    this.showAvatar = document.getElementsByClassName("showAvatar")[0];
-  },
-  computed: {
-    avatarPath: {
-      get() {
-        return this.$store.state.avatarPath;
+    request({
+      url: "/avatar/get",
+      headers: {
+        Authorization: "Bearer " + localStorage.getItem("token"),
       },
-      set(newValue) {
-        console.log("avatarPath 被修改了", newValue);
-        this.$store.commit("GETAVATAR", { avatarPath: newValue });
-      },
-    },
-    userName() {
-      return this.$store.state.userName;
-    },
-    name() {
-      return this.$store.state.name;
-    },
+    }).then((res) => {
+      console.log("header success reponse", res);
+      if (res.isOK) {
+        this.name = res.name;
+        this.avatarPath = res.avatarPath;
+      } else {
+        this.$router.replace("/login");
+      }
+    });
   },
   methods: {
-    signOut() {
-      this.$cookies.remove("token");
-      this.$router.replace({ path: "/" });
-    },
-    getfile(e) {
-      // 获取选取的图片
-      this.file = e.target.files[0];
-      // 创建一个img展示选中的图片
-      let image = document.createElement("img");
-      image.src = URL.createObjectURL(this.file);
-      image.style.height = "100%";
-      this.showAvatar.insertAdjacentElement("beforeend", image);
-    },
-    upload() {
-      // 创建一个 FromData 对象
-      let forms = new FormData();
-      // 添加 file 和 userName 属性
-      forms.append("file", this.file);
-      forms.append("userName", this.userName);
-      // 提交更换图片请求
-      request
-        .post("/avatar/upload", forms, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        })
-        .then((data) => {
-          console.log(data);
-          this.avatarPath = data.avatarPath;
-          this.reset();
-        })
-        .catch(() => {
-          this.reset();
-        });
-    },
-    reset() {
-      if (this.showAvatar.children.length !== 0) {
-        this.showAvatar.removeChild(this.showAvatar.children[0]);
-      }
-      let form = document.querySelector("#forms");
-      form.reset();
-      this.AvatarDisplay = "display: none";
-    },
     goMyPage() {
       this.$router.push("/mypage");
+    },
+    signOut() {
+      // request({
+      //   url: "/signOut",
+      // });
+      localStorage.removeItem("token");
+      this.$router.replace({ path: "/" });
     },
   },
 };
@@ -141,14 +83,12 @@ export default {
     & > div {
       position: relative;
       height: 50px;
-      width: auto;
-      // background-color: pink;
-      padding: 0 5px;
       align-items: center;
       line-height: 50px;
       font-size: 30px;
       display: flex;
       justify-content: center;
+      cursor: pointer;
 
       & > a {
         color: rgba(255, 255, 255, 0.685);
@@ -158,7 +98,6 @@ export default {
         &:hover {
           color: #b07942;
           text-decoration: none;
-          cursor: pointer;
         }
       }
 
@@ -183,63 +122,11 @@ export default {
           font-size: 18px;
           background-color: #fde9cd;
           transition: all 0.3s;
-          cursor: pointer;
 
           &:hover {
             background-color: #f1cbaa;
             color: #422e25;
           }
-        }
-      }
-    }
-  }
-
-  .selectFile {
-    width: 300px;
-    height: 300px;
-    background-color: rgb(255, 255, 255);
-    position: absolute;
-    left: 50%;
-    transform: translate(-50%, 80%);
-    box-shadow: #ccc 0px 0px 10px;
-    border-radius: 10px;
-
-    .title {
-      height: 40px;
-      width: 100%;
-      line-height: 40px;
-      font-size: 18px;
-    }
-
-    .showAvatar {
-      background-color: #ccc;
-      width: 170px;
-      height: 170px;
-      margin: 10px auto;
-      overflow: hidden;
-
-      & > img {
-        width: 100%;
-        height: 100%;
-      }
-    }
-
-    .isSure {
-      width: 100%;
-
-      button {
-        width: 60px;
-        height: 30px;
-        margin: 0 20px;
-        cursor: pointer;
-        transition: all 0.5s;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-        font-size: 16px;
-
-        &:hover {
-          color: white;
-          background: linear-gradient(to right, #fc99f2, #c2d0fb);
         }
       }
     }

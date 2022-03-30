@@ -1,9 +1,9 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 Vue.use(VueRouter)
-import store from '@/store'
 
 const router = new VueRouter({
+  mode: 'history',
   routes: [
     {
       path: '/',
@@ -35,9 +35,9 @@ const router = new VueRouter({
       component: () => import('@/views/introduce'),
     },
     {
-      path: "/story",
-      name: "story",
-      component: () => import('@/views/story'),
+      path: "/article",
+      name: "article",
+      component: () => import('@/views/article'),
     }, {
       path: "/area",
       name: "area",

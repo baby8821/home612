@@ -1,5 +1,6 @@
 <template>
   <div id="introduce">
+    <Header></Header>
     <div class="container">
       <span
         class="goLeft iconfont icon-zuo"
@@ -8,13 +9,7 @@
       ></span>
 
       <transition name="cards" appear>
-        <div
-          class="cards"
-          @mousedown="dragBegin($event)"
-          @mousemove="drag($event)"
-          @mouseup="dragEnd($event)"
-          @mouseleave="dragLeave($event)"
-        >
+        <div class="cards">
           <div
             class="card"
             v-for="p in peopleList"
@@ -48,7 +43,7 @@
               </tr>
               <tr>
                 <td>癖好:</td>
-                <td>{{ p["habits"].join(" ") }}</td>
+                <td>{{ p["habits"].replace(",", " ") }}</td>
               </tr>
             </table>
           </div>
@@ -66,11 +61,13 @@
 
 <script>
 import request from "@/api";
+import Header from "@/components/header";
+
 export default {
   name: "introduce",
   data() {
     return {
-      left: true,
+      left: false,
       right: true,
       peopleList: [],
       isDrag: false,
@@ -78,16 +75,22 @@ export default {
     };
   },
   mounted() {
+    // 禁止文字选中
     document.addEventListener("selectstart", function (e) {
       e.preventDefault();
     });
+
+    // 发送请求
     request({
       url: "/user/getAllBriefInfo",
       method: "post",
-    }).then((data) => {
-      if (data.isOK == true) {
-        this.peopleList = data.data;
-        console.log(this.peopleList);
+      headers: {
+        Authorization: "Bearer " + localStorage.getItem("token"),
+      },
+    }).then((res) => {
+      console.log("Introduce reponse", res);
+      if (res.isOK == true) {
+        this.peopleList = res.data;
       }
     });
   },
@@ -95,6 +98,8 @@ export default {
     goLeft() {
       let box = document.querySelector(".cards");
       box.scrollTo({ left: 0, behavior: "smooth" });
+      this.left = false;
+      this.right = true;
     },
     goRight() {
       let box = document.querySelector(".cards");
@@ -103,30 +108,12 @@ export default {
       let min = container_width.slice(0, container_width.length - 2);
       let differ = 2040 - Number(min);
       box.scrollTo({ left: differ, behavior: "smooth" });
+      this.right = false;
+      this.left = true;
     },
-    dragBegin(e) {
-      console.log("begin");
-
-      this.isDrag = true;
-      this.m_x = e.pageX;
-    },
-    drag(e) {
-      if (this.isDrag) {
-        console.log("drag");
-
-        let move = e.pageX - this.m_x;
-        let box = document.querySelector(".cards");
-        box.scrollLeft -= move * 1.3;
-        this.m_x = e.pageX;
-      }
-    },
-    dragEnd(e) {
-      this.isDrag = false;
-      console.log("end");
-    },
-    dragLeave(e) {
-      this.isDrag = false;
-    },
+  },
+  components: {
+    Header,
   },
 };
 </script>
@@ -146,7 +133,7 @@ export default {
     background-color: rgba(255, 255, 255, 0.562);
     top: 80px;
     border-radius: 40px;
-    overflow: hidden;
+    // overflow: hidden;
 
     .cards {
       display: flex;
@@ -224,7 +211,7 @@ export default {
 
   .cards-enter,
   .cards-leave-to {
-    transform: translateX(10%);
+    transform: translateX(15%);
     opacity: 0.4;
   }
 }

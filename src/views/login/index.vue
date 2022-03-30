@@ -2,7 +2,7 @@
   <div id="login">
     <div class="container">
       <video src="@/assets/612door.mp4" height="100%" muted />
-      <audio src="@/assets/bgm/bensound-cute.mp3" autoplay hidden></audio>
+      <audio src="@/assets/bgm/bensound-cute.mp3" hidden></audio>
       <div :class="loginBox">
         <div class="title">Login</div>
         <div :class="username">
@@ -39,13 +39,25 @@
       </div>
       <span
         class="iconfont icon-51yinliang"
-        v-show="music"
+        v-show="!music"
         @click="changeVolume"
+        @mouseenter="changeIcon"
+        @mouseleave="changeIcon"
+        title="播放"
       ></span>
       <span
         class="iconfont icon-52jingyin"
-        v-show="!music"
+        v-show="music"
         @click="changeVolume"
+        @mouseenter="changeIcon"
+        @mouseleave="changeIcon"
+        title="静音"
+      ></span>
+      <span
+        class="iconfont icon-tiaoguo jumpOver"
+        v-show="success"
+        @click="jumpOver"
+        title="跳过动画"
       ></span>
     </div>
   </div>
@@ -68,13 +80,14 @@ export default {
       success: false,
       info: "密码错误",
       color: "color: green",
-      music: true,
+      music: false,
+      timer: null,
     };
   },
   mounted() {
-    let audio = document.querySelector("audio");
-    audio.play();
-    audio.volume = 0.2;
+    document.addEventListener("selectstart", function (e) {
+      e.preventDefault();
+    });
   },
   methods: {
     login() {
@@ -85,32 +98,36 @@ export default {
             method: "post",
             data: JSON.stringify({ userName: this.user, password: this.pwd }),
           }).then((res) => {
-            console.log("sign in", res);
+            console.log("login response", res);
             if (res.isOK === true) {
-              // 登录成功
+              // 登录成功信息展示
               this.isShow = true;
               this.success = true;
               this.color = "color: green";
               this.info = "欢迎回来~ " + res.data.name;
-              this.loginBox.push("hidden");
               setTimeout(() => {
                 this.isShow = false;
               }, 2000);
 
+              // 登录框消失
+              this.loginBox.push("hidden");
+
               // 将token保存在LocalStorage
               localStorage.setItem("token", res.data.token);
-              // 登录框消失
-              this.display = "display: none";
-              // 播放视频
+
+              // 播放视频与音频
               let video = document.querySelector("video");
               video.className = "playing";
               video.play();
+              let audio = document.querySelector("audio");
+              audio.volume = 0.2;
+              audio.play();
+
               // 路由跳转
-              setTimeout(() => {
+              this.timer = setTimeout(() => {
                 this.$router.push("/home");
-              }, 1000);
+              }, 6000);
             } else {
-              // 密码错误
               this.pwd = null;
               this.password.push("error");
               this.errInfo("密码错误");
@@ -144,6 +161,9 @@ export default {
         this.isShow = false;
       }, 2000);
     },
+    changeIcon() {
+      this.music = !this.music;
+    },
     changeVolume() {
       let audio = document.querySelector("audio");
       if (this.music) {
@@ -152,6 +172,10 @@ export default {
         audio.play();
       }
       this.music = !this.music;
+    },
+    jumpOver() {
+      clearTimeout(this.timer);
+      this.$router.push("/home");
     },
   },
 };
@@ -271,6 +295,9 @@ export default {
         font-size: 16px;
         margin: 0 5px;
       }
+    }
+    .jumpOver {
+      top: 100px;
     }
   }
 

@@ -1,12 +1,8 @@
 <template>
   <div id="home">
+    <Header></Header>
     <div class="container">
-      <div
-        id="memory"
-        @mouseenter="touch($event)"
-        @mouseleave="leaveTouch($event)"
-        @click="$router.push('/memory')"
-      >
+      <div id="memory" @click="$router.push('/memory')">
         <div class="r_zoom">
           <span class="eng">Memory</span>
           <span class="ch">记忆</span>
@@ -14,34 +10,19 @@
       </div>
       <div class="zoom">
         <div id="presentation">
-          <div
-            class="p_zoom"
-            @mouseenter="touch($event)"
-            @mouseleave="leaveTouch($event)"
-            @click="$router.push('/introduce')"
-          >
+          <div class="p_zoom" @click="$router.push('/introduce')">
             <span class="eng">Introduce</span>
             <span class="ch">介绍</span>
           </div>
         </div>
         <div id="article">
-          <div
-            class="a_zoom"
-            @mouseenter="touch($event)"
-            @mouseleave="leaveTouch($event)"
-            @click="$router.push('/story')"
-          >
+          <div class="a_zoom" @click="$router.push('/article')">
             <span class="eng">Story</span>
             <span class="ch">故事</span>
           </div>
         </div>
         <div id="area">
-          <div
-            class="m_zoom"
-            @mouseenter="touch($event)"
-            @mouseleave="leaveTouch($event)"
-            @click="$router.push('/area')"
-          >
+          <div class="m_zoom" @click="$router.push('/area')">
             <span class="eng">Where</span>
             <span class="ch">在哪</span>
           </div>
@@ -52,21 +33,22 @@
 </template>
 
 <script>
+import Header from "@/components/header";
 export default {
   name: "Home",
-  data() {
-    return {};
+  mounted() {
+    document.addEventListener("selectstart", function (e) {
+      e.preventDefault();
+    });
   },
-  methods: {
-    touch(e) {},
-    leaveTouch(e) {},
+  components: {
+    Header,
   },
 };
 </script>
 
 <style scoped lang="less">
 #home {
-  position: relative;
   width: 100%;
   height: 100%;
   background-image: url(@/assets/home_bgimg.jpg);
@@ -76,13 +58,14 @@ export default {
     margin: 0 auto;
     height: 100%;
     width: 1200px;
-    overflow: hidden;
     display: flex;
     justify-content: space-between;
     text-align: center;
 
     span {
       transition: all 0.5s;
+      display: block;
+      width: 100%;
     }
 
     #memory {
@@ -108,12 +91,7 @@ export default {
         border-top: 3px solid #00000067;
       }
 
-      span {
-        display: block;
-      }
-
       .eng {
-        width: 100%;
         height: 120px;
         line-height: 120px;
         font-size: 100px;
@@ -121,7 +99,6 @@ export default {
       }
 
       .ch {
-        width: 100%;
         font-weight: 100;
         height: 0px;
         opacity: 0;
@@ -173,13 +150,8 @@ export default {
         }
 
         .m_zoom {
-          top: -45px;
+          top: -48px;
           left: -70px;
-        }
-
-        span {
-          display: inline-block;
-          width: 100%;
         }
 
         .eng {
